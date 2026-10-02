@@ -54,6 +54,9 @@ header .sub{font-size:.8rem;color:var(--text-muted)}
 .ranges button{padding:9px 16px;border-radius:22px;background:var(--surface-1);
   border:1px solid var(--border);color:var(--text-secondary);font-size:.92rem;white-space:nowrap;flex:0 0 auto}
 .ranges button.on{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:600}
+.ranges select{padding:9px 14px;border-radius:22px;background:var(--surface-1);color:inherit;
+  border:1px solid var(--line);font:inherit;outline:none;cursor:pointer}
+.ranges select.hide{display:none}
 
 /* cards */
 .card{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--r);
@@ -168,6 +171,8 @@ h3.sec::after{content:"";flex:1;height:1px;background:var(--border)}
     <button data-r="d7">7 วัน</button>
     <button data-r="d15">15 วัน</button>
     <button data-r="month">เดือนนี้</button>
+    <button data-r="pick">📅 เลือกเดือน</button>
+    <select id="monthsel" class="hide"></select>
   </div>
 
   <div class="wrap" id="body"></div>
@@ -255,10 +260,15 @@ const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;
 const pct = (a,b)=> b>0 ? Math.round(a/b*100) : 0;
 
 function daysInMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0).getDate(); }
+/* เดือนที่เลือกจากปุ่ม "เลือกเดือน" รูปแบบ YYYY-MM */
+let pickMonth = (()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); })();
+function pickParts(){ const [y,m]=pickMonth.split('-').map(Number); return {y, m}; }
+function isThisMonth(){ const n=new Date(), p=pickParts(); return p.y===n.getFullYear() && p.m===n.getMonth()+1; }
 function daysInRange(key){
   if(key==='today') return 1;
   if(key==='d7') return 7;
   if(key==='d15') return 15;
+  if(key==='pick'){ const p=pickParts(); return isThisMonth() ? new Date().getDate() : new Date(p.y, p.m, 0).getDate(); }
   return new Date().getDate();
 }
 function rangeBounds(key){
@@ -267,6 +277,13 @@ function rangeBounds(key){
   if(key==='today') start.setHours(0,0,0,0);
   else if(key==='d7'){ start.setDate(start.getDate()-6); start.setHours(0,0,0,0); }
   else if(key==='d15'){ start.setDate(start.getDate()-14); start.setHours(0,0,0,0); }
+  else if(key==='pick'){
+    const p=pickParts();
+    const s=new Date(p.y, p.m-1, 1, 0,0,0,0);
+    let e=new Date(p.y, p.m, 0, 23,59,59,999);
+    if(e>end) e=end;                       // เดือนปัจจุบัน นับถึงวันนี้
+    return {start:s, end:e};
+  }
   else { start.setDate(1); start.setHours(0,0,0,0); }
   return {start, end};
 }
@@ -281,7 +298,25 @@ function salaryForRange(key){
   return sum;
 }
 function rangeLabel(key){
+  if(key==='pick'){ const p=pickParts(); return 'เดือน'+new Date(p.y,p.m-1,1).toLocaleDateString('th-TH',{month:'long',year:'numeric'}); }
   return {today:'วันนี้', d7:'7 วันล่าสุด', d15:'15 วันล่าสุด', month:'เดือนนี้'}[key]||'';
+}
+/* รายชื่อเดือนในช่องเลือก — ไล่จากเดือนนี้ย้อนไปจนถึงเดือนแรกที่มีบิล */
+function fillMonthSelect(){
+  const sel=document.getElementById('monthsel'); if(!sel) return;
+  const stamps=[...BB.map(x=>x.date), ...SAM.map(x=>x.ts||x.date)].filter(Boolean).map(d=>new Date(d)).filter(d=>!isNaN(d));
+  const oldest = stamps.length ? new Date(Math.min(...stamps)) : new Date();
+  const now=new Date();
+  let d=new Date(now.getFullYear(), now.getMonth(), 1);
+  const stop=new Date(oldest.getFullYear(), oldest.getMonth(), 1);
+  const opts=[];
+  while(d>=stop && opts.length<48){
+    const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    opts.push('<option value="'+key+'">'+d.toLocaleDateString('th-TH',{month:'long',year:'numeric'})+'</option>');
+    d=new Date(d.getFullYear(), d.getMonth()-1, 1);
+  }
+  sel.innerHTML=opts.join('');
+  sel.value=pickMonth;
 }
 
 /* ---------- BB Glow ---------- */
@@ -600,6 +635,15 @@ $('#ranges').addEventListener('click', e=>{
   const b = e.target.closest('button'); if(!b) return;
   range = b.dataset.r;
   $$('#ranges button').forEach(x=>x.classList.toggle('on', x===b));
+  const sel=$('#monthsel');
+  if(range==='pick'){ fillMonthSelect(); sel.classList.remove('hide'); }
+  else sel.classList.add('hide');
+  render();
+});
+$('#monthsel').addEventListener('change', e=>{
+  pickMonth = e.target.value;
+  range = 'pick';
+  $$('#ranges button').forEach(x=>x.classList.toggle('on', x.dataset.r==='pick'));
   render();
 });
 $('#gear').onclick = openSheet;
