@@ -233,7 +233,15 @@ window.dispatchEvent(new Event('dbReady'));
 const DEFAULTS = {
   salaryTotal: 22000,                  // เงินเดือนรวมทีม BB Glow ต่อเดือน
   rateBB: 13, rateWax: 7, rateSpa: 7,  // ต้นทุนผลิตภัณฑ์ (% ของยอดบริการ)
-  hcCost: {}                           // ทุนสินค้าโฮมแคร์ต่อชิ้น
+  hcCost: {},                          // ทุนสินค้าโฮมแคร์ต่อชิ้น
+  // ค่าใช้จ่ายประจำของแต่ละร้าน — หักในร้านนั้น ๆ
+  rentBB: 10000, utilBB: 3000,         // ค่าเช่า + ค่าน้ำไฟ BB Glow
+  rentSam: 12000, utilSam: 3000,       // ค่าเช่า + ค่าน้ำไฟ สำนัก
+  fixedStart: '',                      // เริ่มคิดค่าเช่า/น้ำไฟเดือนไหน (ว่าง = ทุกเดือน)
+  // ทีมส่วนกลาง — หักจากกำไรรวมของสองกิจการ
+  salJet: 15000, jetPerBranch: 5000, branches: 1,   // เจต · เจษฎาภรณ์ โขตรัย
+  salYong: 10000,                                   // หยง · ปานตะวัน พรหมอยู่
+  centralStart: '2026-10'              // เดือนแรกที่เริ่มจ่ายทีมส่วนกลาง
 };
 let COSTS = {...DEFAULTS};
 
@@ -287,15 +295,39 @@ function rangeBounds(key){
   else { start.setDate(1); start.setHours(0,0,0,0); }
   return {start, end};
 }
-function salaryForRange(key){
+function salaryForRange(key){ return monthlyForRange(COSTS.salaryTotal, key); }
+/* เฉลี่ยค่าใช้จ่ายรายเดือนลงเป็นรายวันตามช่วงที่เลือก
+   startYm = 'YYYY-MM' เดือนแรกที่เริ่มจ่าย (ว่าง = คิดทุกเดือน) */
+function monthlyForRange(amount, key, startYm){
+  if(!amount) return 0;
   const {start} = rangeBounds(key);
   const n = daysInRange(key);
+  let from = null;
+  if(startYm && /^\d{4}-\d{2}$/.test(startYm)){
+    const [y,m] = startYm.split('-').map(Number);
+    from = new Date(y, m-1, 1, 0,0,0,0);
+  }
   let sum = 0;
   for(let i=0;i<n;i++){
     const d = new Date(start); d.setDate(d.getDate()+i);
-    sum += COSTS.salaryTotal / daysInMonth(d);
+    if(from && d < from) continue;          // ก่อนเริ่มจ้าง/เริ่มเช่า ไม่คิด
+    sum += amount / daysInMonth(d);
   }
   return sum;
+}
+/* ค่าเช่า + น้ำไฟ ของแต่ละร้าน */
+function fixedBB(key){ return monthlyForRange((COSTS.rentBB||0)+(COSTS.utilBB||0), key, COSTS.fixedStart); }
+function fixedSam(key){ return monthlyForRange((COSTS.rentSam||0)+(COSTS.utilSam||0), key, COSTS.fixedStart); }
+/* ทีมส่วนกลาง — เจต + หยง */
+function centralCost(key){
+  const jetMonthly  = (COSTS.salJet||0) + (COSTS.jetPerBranch||0)*(COSTS.branches||0);
+  const yongMonthly = (COSTS.salYong||0);
+  return {
+    jet:  monthlyForRange(jetMonthly,  key, COSTS.centralStart),
+    yong: monthlyForRange(yongMonthly, key, COSTS.centralStart),
+    jetMonthly, yongMonthly,
+    get total(){ return this.jet + this.yong; }
+  };
 }
 function rangeLabel(key){
   if(key==='pick'){ const p=pickParts(); return 'เดือน'+new Date(p.y,p.m-1,1).toLocaleDateString('th-TH',{month:'long',year:'numeric'}); }
@@ -400,9 +432,10 @@ function computeBB(key){
   const productCost = g.bb*COSTS.rateBB/100 + g.wax*COSTS.rateWax/100 + g.spa*COSTS.rateSpa/100
                     + bills.reduce((a,s)=>a+homecareCost(s),0);
   const salary = salaryForRange(key);
-  const profit = revenue - comm - salary - productCost;
+  const fixed  = fixedBB(key);                       // ค่าเช่า + น้ำไฟ ของร้าน
+  const profit = revenue - comm - salary - productCost - fixed;
 
-  return {count:bills.length, revenue, cash, transfer, svc, hc, comm, salary, productCost, profit,
+  return {count:bills.length, revenue, cash, transfer, svc, hc, comm, salary, productCost, fixed, profit,
     estimatedBills, avg: bills.length?revenue/bills.length:0,
     staff:Object.values(staffMap),
     services:Object.values(svcMap).sort((a,b)=>b.total-a.total),
@@ -425,8 +458,9 @@ function computeSam(key){
       itemMap[k].total += (it.price||0)*(it.qty||1);
     });
   });
-  return {count:bills.length, revenue, cash, transfer,
-    profit: revenue,                       // ไม่หักต้นทุน ตามที่อาจารย์สั่ง
+  const fixed = fixedSam(key);             // ค่าเช่า + น้ำไฟ ของสำนัก
+  return {count:bills.length, revenue, cash, transfer, fixed,
+    profit: revenue - fixed,               // ไม่คิดต้นทุนสินค้า (อาจารย์ทำเอง) แต่หักค่าเช่า/น้ำไฟ
     avg: bills.length?revenue/bills.length:0,
     items:Object.values(itemMap).sort((a,b)=>b.total-a.total)};
 }
@@ -450,7 +484,9 @@ function last7(){
 function render(){
   const b = computeBB(range), s = computeSam(range);
   const revenue = b.revenue + s.revenue;
-  const profit  = b.profit + s.profit;
+  const shopProfit = b.profit + s.profit;          // กำไรหน้าร้านรวม (หักค่าเช่า/น้ำไฟแล้ว)
+  const central = centralCost(range);              // ทีมส่วนกลาง
+  const profit  = shopProfit - central.total;      // กำไรสุทธิ
   const count   = b.count + s.count;
   const days7   = last7();
   const mx = Math.max(1, ...days7.map(d=>d.bb+d.sam));
@@ -468,7 +504,7 @@ function render(){
        '<span><i class="dot" style="background:var(--c-bb)"></i>BB Glow '+pct(b.revenue,revenue)+'% · '+money(b.revenue)+' ฿</span>'+
        '<span><i class="dot" style="background:var(--c-sam)"></i>สำนัก '+pct(s.revenue,revenue)+'% · '+money(s.revenue)+' ฿</span></div>';
   h += '<div class="herorow">'+
-       '<div><div class="lb">กำไรรวม</div><div class="v" style="color:var(--c-profit)">'+money(profit)+' ฿</div></div>'+
+       '<div><div class="lb">กำไรสุทธิ</div><div class="v" style="color:var(--c-profit)">'+money(profit)+' ฿</div></div>'+
        '<div><div class="lb">จำนวนบิล</div><div class="v">'+count+'</div></div>'+
        '<div><div class="lb">เฉลี่ยต่อบิล</div><div class="v">'+money(count?revenue/count:0)+' ฿</div></div>'+
        '</div></div>';
@@ -492,6 +528,7 @@ function render(){
        '<div class="pfline"><span>หัก ค่าคอมพนักงาน</span><b style="color:var(--c-comm)">−'+money(b.comm)+'</b></div>'+
        '<div class="pfline"><span>หัก เงินเดือน ('+daysInRange(range)+' วัน)</span><b style="color:var(--c-salary)">−'+money(b.salary)+'</b></div>'+
        '<div class="pfline"><span>หัก ค่าผลิตภัณฑ์</span><b style="color:var(--c-product)">−'+money(b.productCost)+'</b></div>'+
+       '<div class="pfline"><span>หัก ค่าเช่า + น้ำไฟ</span><b style="color:var(--c-salary)">−'+money(b.fixed)+'</b></div>'+
        '<div class="pfline tot"><span>กำไรเหลือ</span><b>'+money(b.profit)+' ฿ <span style="font-size:.8rem;font-weight:500">('+pct(b.profit,b.revenue)+'%)</span></b></div>'+
        '</div></div>';
 
@@ -504,10 +541,36 @@ function render(){
        '<div><div class="lb">เงินสด/โอน</div><div class="v" style="font-size:.95rem">'+money(s.cash)+' / '+money(s.transfer)+'</div></div>'+
        '</div>';
   h += '<div class="pf">'+
-       '<div class="pfline"><span>ไม่คิดต้นทุน (อาจารย์ทำเอง)</span><b>−0</b></div>'+
-       '<div class="pfline tot"><span>กำไรเหลือ</span><b>'+money(s.profit)+' ฿ <span style="font-size:.8rem;font-weight:500">(100%)</span></b></div>'+
+       '<div class="pfline"><span>ไม่คิดต้นทุนสินค้า (อาจารย์ทำเอง)</span><b>−0</b></div>'+
+       '<div class="pfline"><span>หัก ค่าเช่า + น้ำไฟ</span><b style="color:var(--c-salary)">−'+money(s.fixed)+'</b></div>'+
+       '<div class="pfline tot"><span>กำไรเหลือ</span><b>'+money(s.profit)+' ฿ <span style="font-size:.8rem;font-weight:500">('+pct(s.profit,s.revenue)+'%)</span></b></div>'+
        '</div></div>';
 
+  h += '</div>';
+
+  /* ---------- ทีมส่วนกลาง ---------- */
+  const monthlyCentral = central.jetMonthly + central.yongMonthly;
+  h += '<h3 class="sec">ทีมส่วนกลาง · '+esc(rangeLabel(range))+'</h3>';
+  h += '<div class="card">';
+  h += '<div class="pf" style="margin-top:0">'+
+       '<div class="pfline"><span>กำไรหน้าร้าน BB Glow</span><b>'+money(b.profit)+'</b></div>'+
+       '<div class="pfline"><span>กำไรหน้าร้าน สำนัก</span><b>'+money(s.profit)+'</b></div>'+
+       '<div class="pfline tot"><span>กำไรหน้าร้านรวม</span><b>'+money(shopProfit)+' ฿</b></div>'+
+       '</div>';
+  h += '<div class="pf">'+
+       '<div class="pfline"><span>หัก เจต · ผู้ช่วยผู้จัดการ'+
+         '<br><span style="font-size:.72rem;opacity:.7">เอกสาร ภาษี ใบอนุญาต จัดซื้อ · '+money(COSTS.salJet)+
+         (COSTS.branches? ' + สาขา '+COSTS.branches+'×'+money(COSTS.jetPerBranch) : '')+' = '+money(central.jetMonthly)+' ฿/เดือน</span></span>'+
+         '<b style="color:var(--c-salary)">−'+money(central.jet)+'</b></div>'+
+       '<div class="pfline"><span>หัก หยง · เจนเนอรัล'+
+         '<br><span style="font-size:.72rem;opacity:.7">'+money(central.yongMonthly)+' ฿/เดือน</span></span>'+
+         '<b style="color:var(--c-salary)">−'+money(central.yong)+'</b></div>'+
+       '<div class="pfline tot"><span>กำไรสุทธิ</span><b style="color:var(--c-profit)">'+money(profit)+' ฿ '+
+         '<span style="font-size:.8rem;font-weight:500">('+pct(profit,revenue)+'% ของยอดขาย)</span></b></div>'+
+       '</div>';
+  h += '<div class="note" style="margin:10px 0 0">ทีมส่วนกลางคิดเดือนละ '+money(monthlyCentral)+' ฿ '+
+       '(เริ่ม '+(COSTS.centralStart? new Date(+COSTS.centralStart.slice(0,4), +COSTS.centralStart.slice(5,7)-1, 1).toLocaleDateString('th-TH',{month:'long',year:'numeric'}) : 'ทุกเดือน')+') '+
+       'เฉลี่ยวันละ '+money(monthlyCentral/daysInMonth(new Date()))+' ฿ · แก้ตัวเลขได้ที่ปุ่ม ⚙️</div>';
   h += '</div>';
 
   /* กราฟ */
@@ -574,7 +637,7 @@ function render(){
     h += '<div class="card"><div class="empty">ยังไม่มีบิลในช่วงนี้</div></div>';
   }
 
-  h += '<p class="note" style="text-align:center;margin:18px 0 8px">ตัวเลขดิบ ไม่รวมค่าเช่า/น้ำไฟ · อัปเดตสดตามบิลที่ปิดในระบบ</p>';
+  h += '<p class="note" style="text-align:center;margin:18px 0 8px">ค่าเช่าและน้ำไฟหักในร้านของตัวเอง · เงินเดือนทีมส่วนกลางหักจากกำไรรวม · อัปเดตสดตามบิลที่ปิดในระบบ</p>';
 
   $('#body').innerHTML = h;
 }
@@ -586,6 +649,18 @@ function openSheet(){
   h += '<div class="frow"><label>ต้นทุนผลิตภัณฑ์ งาน BB (%)</label><input id="f_bb" type="number" value="'+COSTS.rateBB+'"></div>';
   h += '<div class="frow"><label>ต้นทุนผลิตภัณฑ์ งานแว็กซ์ (%)</label><input id="f_wax" type="number" value="'+COSTS.rateWax+'"></div>';
   h += '<div class="frow"><label>ต้นทุนผลิตภัณฑ์ งานสปา (%)</label><input id="f_spa" type="number" value="'+COSTS.rateSpa+'"></div>';
+  h += '<h3 class="sec">ค่าเช่าและน้ำไฟ (บาท/เดือน)</h3>';
+  h += '<div class="frow"><label>ค่าเช่าร้าน BB Glow</label><input id="f_rentbb" type="number" value="'+(COSTS.rentBB||0)+'"></div>';
+  h += '<div class="frow"><label>ค่าน้ำไฟ BB Glow</label><input id="f_utilbb" type="number" value="'+(COSTS.utilBB||0)+'"></div>';
+  h += '<div class="frow"><label>ค่าเช่าสำนัก</label><input id="f_rentsam" type="number" value="'+(COSTS.rentSam||0)+'"></div>';
+  h += '<div class="frow"><label>ค่าน้ำไฟสำนัก</label><input id="f_utilsam" type="number" value="'+(COSTS.utilSam||0)+'"></div>';
+  h += '<div class="frow"><label>เริ่มคิดค่าเช่า/น้ำไฟเดือนไหน (ว่าง = ทุกเดือน)</label><input id="f_fixedstart" type="month" value="'+(COSTS.fixedStart||'')+'"></div>';
+  h += '<h3 class="sec">ทีมส่วนกลาง (บาท/เดือน)</h3>';
+  h += '<div class="frow"><label>เจต · เจษฎาภรณ์ โขตรัย — เงินเดือน</label><input id="f_jet" type="number" value="'+(COSTS.salJet||0)+'"></div>';
+  h += '<div class="frow"><label>เจต — เงินเพิ่มต่อสาขา BB Glow</label><input id="f_jetbr" type="number" value="'+(COSTS.jetPerBranch||0)+'"></div>';
+  h += '<div class="frow"><label>จำนวนสาขา BB Glow</label><input id="f_branches" type="number" value="'+(COSTS.branches||0)+'"></div>';
+  h += '<div class="frow"><label>หยง · ปานตะวัน พรหมอยู่ — เงินเดือน</label><input id="f_yong" type="number" value="'+(COSTS.salYong||0)+'"></div>';
+  h += '<div class="frow"><label>เริ่มจ่ายทีมส่วนกลางเดือนไหน</label><input id="f_centralstart" type="month" value="'+(COSTS.centralStart||'')+'"></div>';
   h += '<h3 class="sec">ทุนสินค้าโฮมแคร์ต่อชิ้น</h3>';
   HOMECARE.forEach(p=>{
     h += '<div class="frow"><label>'+esc(p.name)+'</label><input data-hc="'+p.id+'" type="number" value="'+(COSTS.hcCost[p.id]||'')+'" placeholder="0"></div>';
@@ -599,6 +674,16 @@ function saveSheet(){
     rateBB: +$('#f_bb').value || 0,
     rateWax: +$('#f_wax').value || 0,
     rateSpa: +$('#f_spa').value || 0,
+    rentBB: +$('#f_rentbb').value || 0,
+    utilBB: +$('#f_utilbb').value || 0,
+    rentSam: +$('#f_rentsam').value || 0,
+    utilSam: +$('#f_utilsam').value || 0,
+    fixedStart: $('#f_fixedstart').value || '',
+    salJet: +$('#f_jet').value || 0,
+    jetPerBranch: +$('#f_jetbr').value || 0,
+    branches: +$('#f_branches').value || 0,
+    salYong: +$('#f_yong').value || 0,
+    centralStart: $('#f_centralstart').value || '',
     hcCost: {}
   };
   $$('#fields input[data-hc]').forEach(i=>{ const v=+i.value; if(v>0) next.hcCost[i.dataset.hc]=v; });
