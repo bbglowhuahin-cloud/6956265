@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>แดชบอร์ดผู้จัดการ — BB Glow หัวหิน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF6EF; --surface-1:#FFFFFF; --surface-2:#F5EDE0;
+  --border:rgba(154,122,42,.22);
+  --text-primary:#2A1F14; --text-secondary:#5C4A34; --text-muted:#8A7659;
+  --gold:#9A7A2A; --gold-soft:#C9A96E;
+  --c-cash:#1b7a58; --c-transfer:#2a78d6; --c-warn:#b57600; --c-danger:#b03a2e; --c-ok:#1b7a58;
+  --shadow:0 1px 3px rgba(80,50,10,.07), 0 6px 18px rgba(80,50,10,.06);
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#16120E; --surface-1:#221B14; --surface-2:#2B2219;
+    --border:rgba(201,169,110,.2);
+    --text-primary:#F6EEE0; --text-secondary:#D3C3A8; --text-muted:#9E8B70;
+    --gold:#E8C87A; --gold-soft:#A98A50;
+    --c-cash:#3fc194; --c-transfer:#6ba8ee; --c-warn:#e0a534; --c-danger:#cf5b4e; --c-ok:#3fc194;
+    --shadow:0 1px 3px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.3);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text-primary);font-family:'Sarabun',system-ui,sans-serif}
+body{padding-bottom:40px;-webkit-font-smoothing:antialiased}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+.hide{display:none!important}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+header{background:var(--surface-1);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40}
+.hin{max-width:1000px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:12px}
+h1{margin:0;font-size:1.12rem;font-weight:700;letter-spacing:.2px}
+.sub{font-size:.76rem;color:var(--text-muted)}
+.iconbtn{margin-left:auto;background:none;border:1px solid var(--border);border-radius:12px;padding:7px 12px;color:var(--text-secondary);font-size:.82rem}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;max-width:1000px;margin:0 auto;padding:10px 16px 0;scrollbar-width:none}
+nav.tabs button{white-space:nowrap;border:1px solid var(--border);background:var(--surface-1);border-radius:22px;padding:9px 16px;color:var(--text-secondary);font-size:.9rem}
+nav.tabs button.on{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:600}
+.ranges{display:flex;gap:7px;overflow-x:auto;max-width:1000px;margin:0 auto;padding:12px 16px 2px;scrollbar-width:none}
+.ranges button{white-space:nowrap;padding:8px 14px;border-radius:20px;background:var(--surface-1);border:1px solid var(--border);color:var(--text-secondary);font-size:.84rem}
+.ranges button.on{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:600}
+.ranges input,.ranges select{padding:7px 12px;border-radius:20px;background:var(--surface-1);border:1px solid var(--border);outline:none;font-size:.84rem}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px;margin-top:14px}
+.lb{font-size:.76rem;color:var(--text-muted);letter-spacing:.2px}
+.big{font-size:2.3rem;font-weight:700;line-height:1.1}
+.big small{font-size:.9rem;font-weight:500;color:var(--text-muted);margin-left:6px}
+.v{font-size:1.1rem;font-weight:700}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
+.tile{background:var(--surface-2);border-radius:12px;padding:12px 14px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--border)}
+.row:last-child{border-bottom:none}
+.sec{font-size:.95rem;font-weight:700;margin:20px 0 0;color:var(--text-secondary)}
+.bars{display:flex;align-items:flex-end;gap:6px;height:150px;margin-top:12px}
+.bcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;min-width:0}
+.bstack{width:min(30px,100%);background:var(--surface-2);border-radius:6px 6px 0 0;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.bstack i{display:block}
+.bval{font-size:.62rem;color:var(--text-muted)}
+.bxs{display:flex;gap:6px;margin-top:6px;font-size:.66rem;color:var(--text-muted);text-align:center}
+.bxs div{flex:1;min-width:0;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th{text-align:left;font-weight:600;color:var(--text-muted);font-size:.74rem;padding:8px 6px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 6px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;font-size:.68rem;padding:2px 8px;border-radius:10px;background:var(--surface-2);color:var(--text-secondary);white-space:nowrap}
+.pill.cash{background:rgba(27,122,88,.14);color:var(--c-cash)}
+.pill.tf{background:rgba(42,120,214,.14);color:var(--c-transfer)}
+.pill.ok{background:rgba(27,122,88,.14);color:var(--c-ok)}
+.pill.warn{background:rgba(181,118,0,.16);color:var(--c-warn)}
+.pill.danger{background:rgba(176,58,46,.14);color:var(--c-danger)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
+.filters select,.filters input{padding:8px 12px;border-radius:12px;background:var(--surface-1);border:1px solid var(--border);outline:none;font-size:.84rem}
+.btn{border:1px solid var(--border);background:var(--surface-1);border-radius:12px;padding:9px 14px;font-size:.86rem;color:var(--text-secondary)}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:600}
+.btn.danger{border-color:var(--c-danger);color:var(--c-danger)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.empty{text-align:center;color:var(--text-muted);padding:22px 0;font-size:.88rem}
+.note{font-size:.76rem;color:var(--text-muted);line-height:1.6}
+.frow{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.frow label{font-size:.78rem;color:var(--text-muted)}
+.frow input,.frow select{padding:10px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border);outline:none}
+.sheet{position:fixed;inset:0;background:rgba(20,12,4,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:60}
+.sheetbox{background:var(--surface-1);border:1px solid var(--border);border-radius:20px;padding:20px;max-width:460px;width:100%;max-height:88vh;overflow:auto;box-shadow:var(--shadow)}
+.sheetbox h2{margin:0 0 4px;font-size:1.05rem}
+.gate{min-height:100svh;display:flex;align-items:center;justify-content:center;padding:20px}
+.gatebox{background:var(--surface-1);border:1px solid var(--border);border-radius:20px;padding:26px 22px;max-width:360px;width:100%;box-shadow:var(--shadow);text-align:center}
+.gatebox h2{margin:0 0 6px;font-size:1.1rem}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);background:var(--text-primary);color:var(--bg);padding:11px 18px;border-radius:14px;font-size:.86rem;opacity:0;transition:.25s;z-index:80;pointer-events:none;max-width:92vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.recipe{border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-top:10px;background:var(--surface-1)}
+.recipe h4{margin:0 0 2px;font-size:.95rem}
+.rline{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.rline select{flex:1;min-width:150px;padding:8px 10px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border)}
+.rline input{width:92px;padding:8px 10px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);text-align:right}
+.rline .x{border:none;background:none;color:var(--text-muted);padding:4px 8px;font-size:1.1rem}
+</style>
+</head>
+<body>
+
+<!-- ด่านรหัสผ่าน -->
+<div id="gate" class="gate">
+  <form class="gatebox" id="gateform" autocomplete="off">
+    <h2>แดชบอร์ดผู้จัดการ</h2>
+    <p class="note" id="gatenote">BB Glow หัวหิน</p>
+    <div class="frow" style="margin-top:14px;text-align:left">
+      <label for="gatepw" id="gatelabel">รหัสผ่าน</label>
+      <input id="gatepw" type="password" placeholder="••••••">
+    </div>
+    <div class="frow hide" id="gate2row" style="text-align:left">
+      <label for="gatepw2">พิมพ์รหัสอีกครั้ง</label>
+      <input id="gatepw2" type="password" placeholder="••••••">
+    </div>
+    <div id="gateerr" class="note" style="color:var(--c-danger);min-height:20px"></div>
+    <button class="btn gold" id="gatebtn" type="submit" style="width:100%">เข้าสู่ระบบ</button>
+  </form>
+</div>
+
+<!-- แอป -->
+<div id="app" class="hide">
+  <header>
+    <div class="hin">
+      <div>
+        <h1>แดชบอร์ดผู้จัดการ</h1>
+        <div class="sub">BB Glow หัวหิน · <span id="synced">กำลังโหลด…</span></div>
+      </div>
+      <button class="iconbtn" id="logout">ออก</button>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="rev" class="on">รายรับ</button>
+      <button data-tab="cus">ลูกค้า</button>
+      <button data-tab="stock">สต๊อก</button>
+      <button data-tab="recipe">สูตรตัดสต๊อก</button>
+    </nav>
+    <div class="ranges" id="ranges">
+      <button data-r="today" class="on">วันนี้</button>
+      <button data-r="yday">เมื่อวาน</button>
+      <button data-r="d7">7 วัน</button>
+      <button data-r="week">สัปดาห์นี้</button>
+      <button data-r="month">เดือนนี้</button>
+      <button data-r="year">ปีนี้</button>
+      <button data-r="pickday">📆 เลือกวัน</button>
+      <button data-r="pickmonth">📅 เลือกเดือน</button>
+      <button data-r="pickyear">🗓 เลือกปี</button>
+      <input type="date" id="dayin" class="hide">
+      <select id="monthin" class="hide"></select>
+      <select id="yearin" class="hide"></select>
+    </div>
+  </header>
+  <div class="wrap" id="view"></div>
+</div>
+
+<div id="sheets"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyB8HM1grB7OsiBvdLo5xRH5SqLnQoLR25U",
+  authDomain:"bbglowhuahin-3bb7d.firebaseapp.com",
+  projectId:"bbglowhuahin-3bb7d",
+  storageBucket:"bbglowhuahin-3bb7d.firebasestorage.app",
+  messagingSenderId:"714462283652",
+  appId:"1:714462283652:web:088c6ddde11f46fc08ffd1"
+});
+const db = getFirestore(app);
+
+/* ========== state ========== */
+let SALES=[], ITEMS=[], RECIPES={}, COUNTS=[], MOVES=[], CFG={};
+let tab='rev', range='today', pickDay=ymd(new Date()), pickMonth=ym(new Date()), pickYear=String(new Date().getFullYear());
+let fCus={staff:'', svc:'', pay:'', q:''};
+let ready=false;
+
+/* ========== helpers ========== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>Math.round(n||0).toLocaleString('en-US');
+const fmtQty=n=>{ if(n==null) return '—'; const r=Math.round(n*100)/100; return (Math.abs(r%1)<0.005?Math.round(r):r.toFixed(2)).toLocaleString('en-US'); };
+const pct=(a,b)=>b?Math.round(a/b*100):0;
+function ymd(d){const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');}
+function ym(d){return ymd(d).slice(0,7);}
+function parseYmd(s){const [y,m,d]=String(s).split('-').map(Number);return new Date(y,(m||1)-1,d||1);}
+const sod=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x;};
+const eod=d=>{const x=new Date(d);x.setHours(23,59,59,999);return x;};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const thDate=d=>new Date(d).toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});
+const thLong=d=>new Date(d).toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const thMonth=d=>new Date(d).toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+const hhmm=d=>new Date(d).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2600);}
+const paidOf=s=>(s.totalPaid!=null?s.totalPaid:(s.paid||0));
+const isLive=s=>!s.voided;
+/* ชื่อบริการในบิล (รองรับบิลเก่าที่เก็บเป็นข้อความเดียว) */
+function svcNames(s){
+  if(Array.isArray(s.serviceItems)&&s.serviceItems.length) return s.serviceItems.map(i=>i.name||'บริการ');
+  return String(s.service||'').split(',').map(x=>x.trim()).filter(Boolean);
+}
+
+/* ========== ช่วงเวลา ========== */
+function bounds(){
+  const now=new Date(), t0=sod(now), T=eod(now);
+  switch(range){
+    case 'today':  return {s:t0, e:T, label:'วันนี้ · '+thLong(t0), unit:'day'};
+    case 'yday':   {const d=addDays(t0,-1); return {s:d, e:eod(d), label:'เมื่อวาน · '+thLong(d), unit:'day'};}
+    case 'd7':     return {s:addDays(t0,-6), e:T, label:'7 วันล่าสุด', unit:'day'};
+    case 'week':   {const w=sod(addDays(t0,-((t0.getDay()+6)%7))); return {s:w, e:T, label:'สัปดาห์นี้ · จันทร์ '+thDate(w)+' ถึงวันนี้', unit:'day'};}
+    case 'month':  {const s=new Date(t0.getFullYear(),t0.getMonth(),1); return {s, e:T, label:'เดือนนี้ · '+thMonth(s), unit:'day'};}
+    case 'year':   {const s=new Date(t0.getFullYear(),0,1); return {s, e:T, label:'ปีนี้ · พ.ศ. '+(t0.getFullYear()+543), unit:'month'};}
+    case 'pickday':{const d=parseYmd(pickDay); return {s:sod(d), e:eod(d), label:thLong(d), unit:'day'};}
+    case 'pickmonth':{const s=parseYmd(pickMonth+'-01'); let e=eod(new Date(s.getFullYear(),s.getMonth()+1,0)); if(e>T)e=T; return {s, e, label:thMonth(s), unit:'day'};}
+    case 'pickyear':{const y=+pickYear; const s=new Date(y,0,1); let e=eod(new Date(y,11,31)); if(e>T)e=T; return {s, e, label:'ปี พ.ศ. '+(y+543), unit:'month'};}
+  }
+  return {s:t0, e:T, label:'วันนี้', unit:'day'};
+}
+function prevBounds(b){
+  const span=b.e-b.s;
+  return {s:new Date(b.s.getTime()-span-1), e:new Date(b.s.getTime()-1)};
+}
+const billsIn=(s,e)=>SALES.filter(x=>{const d=new Date(x.date); return isLive(x)&&d>=s&&d<=e;});
+
+/* ========== สรุปยอด ========== */
+const commOf=s=>(s.commission||0)+((s.coStaffs||[]).reduce((a,c)=>a+(c.comm||0),0));
+function summary(list){
+  let total=0, cash=0, transfer=0, comm=0;
+  const staff={}, svc={}, cus=new Set();
+  list.forEach(s=>{
+    const v=paidOf(s); total+=v; comm+=commOf(s);
+    if(s.payMethod==='transfer') transfer+=v; else cash+=v;
+    const st=s.staffName||'ไม่ระบุ';
+    staff[st]=staff[st]||{name:st, bills:0, total:0, comm:0, cus:new Set()};
+    staff[st].bills++; staff[st].total+=v; staff[st].comm+=(s.commission||0);
+    (s.coStaffs||[]).forEach(c=>{ const k=c.staffName||'ไม่ระบุ'; staff[k]=staff[k]||{name:k,bills:0,total:0,comm:0,cus:new Set()}; staff[k].comm+=(c.comm||0); });
+    if(s.memberId) staff[st].cus.add(s.memberId);
+    svcNames(s).forEach(n=>{ svc[n]=svc[n]||{name:n, n:0, total:0}; svc[n].n++; });
+    (s.serviceItems||[]).forEach(i=>{ if(svc[i.name]) svc[i.name].total+=(i.price||0); });
+    if(s.memberId) cus.add(s.memberId); else cus.add('walkin-'+s.id);
+  });
+  return {total, cash, transfer, comm, bills:list.length, customers:cus.size,
+    avg:list.length?total/list.length:0,
+    staff:Object.values(staff).sort((a,b)=>b.total-a.total),
+    svc:Object.values(svc).sort((a,b)=>b.n-a.n)};
+}
+
+/* ========== สต๊อก ========== */
+const latestCount=()=>COUNTS.length?[...COUNTS].sort((a,b)=>String(b.at).localeCompare(String(a.at)))[0]:null;
+const perUnit=id=>{ const it=ITEMS.find(i=>i.id===id); return (it&&+it.usesPerUnit>0)?+it.usesPerUnit:1; };
+function usageBetween(s,e){
+  const use={};
+  const add=(id,q)=>{ if(!id||!q) return; use[id]=(use[id]||0)+q; };
+  billsIn(s,e).forEach(b=>{
+    svcNames(b).forEach(n=>{
+      const r=RECIPES[n]; if(!r) return;
+      // สูตรกรอกเป็น "จำนวนครั้งที่ใช้" แล้วหารด้วยจำนวนครั้งต่อหน่วย เช่น เซรั่ม 1 ขวดใช้ได้ 10 ครั้ง → ครั้งละ 0.1 ขวด
+      (r.lines||[]).forEach(l=>add(l.item, (+l.qty||0)/perUnit(l.item)));
+    });
+    if(CFG.autoHomecare!==false){
+      (b.homecareItems||[]).forEach(h=>{
+        const it=ITEMS.find(i=>i.name===h.name);
+        if(it) add(it.id, h.qty||0);
+      });
+    }
+  });
+  return use;
+}
+function stockState(){
+  const c=latestCount();
+  const from=c?new Date(c.at):null;
+  const now=new Date();
+  const used=from?usageBetween(from, now):{};
+  const used30=usageBetween(addDays(sod(now),-29), eod(now));
+  return ITEMS.map(it=>{
+    const base=c?(+(c.lines||{})[it.id]||0):null;
+    const inQty=MOVES.filter(m=>m.item===it.id && (!from || new Date(m.at)>from)).reduce((a,m)=>a+(+m.qty||0),0);
+    const u=used[it.id]||0;
+    const left=base==null?null:base+inQty-u;
+    const perDay=(used30[it.id]||0)/30;
+    const daysLeft=(left!=null&&perDay>0)?Math.floor(left/perDay):null;
+    let status='none';
+    if(left!=null){
+      if(left<=0) status='out';
+      else if(it.reorder && left<=it.reorder) status='low';
+      else status='ok';
+    }
+    return {...it, base, inQty, used:u, left, perDay, daysLeft, status};
+  });
+}
+
+/* ========== render ========== */
+function render(){
+  if(!ready) return;
+  const b=bounds();
+  $('#view').innerHTML = tab==='rev'?viewRevenue(b) : tab==='cus'?viewCustomers(b) : tab==='stock'?viewStock(b) : viewRecipe(b);
+}
+
+function periodHead(b, extra=''){
+  return '<div class="card"><div class="lb">ช่วงที่ดู</div><div style="font-weight:700;font-size:1.02rem">'+esc(b.label)+'</div>'+extra+'</div>';
+}
+
+function viewRevenue(b){
+  const list=billsIn(b.s,b.e), S=summary(list);
+  const p=prevBounds(b), P=summary(billsIn(p.s,p.e));
+  const diff=P.total?Math.round((S.total-P.total)/P.total*100):null;
+  let h=periodHead(b);
+  h+='<div class="card"><div class="lb">ยอดขายรวม</div><div class="big">'+money(S.total)+'<small>บาท</small></div>';
+  if(diff!=null) h+='<div class="note" style="color:'+(diff>=0?'var(--c-ok)':'var(--c-danger)')+'">'+(diff>=0?'▲ +':'▼ ')+diff+'% เทียบช่วงก่อนหน้า ('+money(P.total)+' ฿)</div>';
+  h+='<div class="grid3">'+
+     '<div class="tile"><div class="lb">เงินสด</div><div class="v" style="color:var(--c-cash)">'+money(S.cash)+' ฿</div><div class="lb">'+pct(S.cash,S.total)+'%</div></div>'+
+     '<div class="tile"><div class="lb">เงินโอน</div><div class="v" style="color:var(--c-transfer)">'+money(S.transfer)+' ฿</div><div class="lb">'+pct(S.transfer,S.total)+'%</div></div>'+
+     '<div class="tile"><div class="lb">จำนวนบิล</div><div class="v">'+S.bills+'</div></div>'+
+     '<div class="tile"><div class="lb">ลูกค้า</div><div class="v">'+S.customers+' คน</div></div>'+
+     '<div class="tile"><div class="lb">เฉลี่ยต่อบิล</div><div class="v">'+money(S.avg)+' ฿</div></div>'+
+     '<div class="tile"><div class="lb">ค่าคอมพนักงาน</div><div class="v" style="color:var(--c-warn)">'+money(S.comm)+' ฿</div></div>'+
+     '</div></div>';
+
+  /* กราฟ */
+  const pts=[];
+  if(b.unit==='month'){
+    for(let m=0;m<12;m++){
+      const s=new Date(b.s.getFullYear(),m,1), e=eod(new Date(b.s.getFullYear(),m+1,0));
+      if(s>b.e) break;
+      const l=billsIn(s,e), x=summary(l);
+      pts.push({label:s.toLocaleDateString('th-TH',{month:'short'}), cash:x.cash, tf:x.transfer, total:x.total});
+    }
+  } else {
+    const days=Math.min(62, Math.round((sod(b.e)-sod(b.s))/864e5)+1);
+    for(let i=0;i<days;i++){
+      const d=addDays(b.s,i); if(d>b.e) break;
+      const l=billsIn(sod(d),eod(d)), x=summary(l);
+      pts.push({label:(days>14?String(d.getDate()):thDate(d).replace(' ','\n')), cash:x.cash, tf:x.transfer, total:x.total});
+    }
+  }
+  const mx=Math.max(1,...pts.map(p=>p.total));
+  h+='<div class="card"><div class="lb">ยอดขายแยกเงินสด / เงินโอน</div><div class="bars">';
+  pts.forEach(p=>{
+    const hp=v=>Math.round(v/mx*100);
+    h+='<div class="bcol" title="'+esc(p.label)+' · สด '+money(p.cash)+' / โอน '+money(p.tf)+'">'+
+       (p.total?'<span class="bval">'+(p.total>=1000?Math.round(p.total/1000)+'k':p.total)+'</span>':'')+
+       '<span class="bstack" style="height:'+Math.max(2,hp(p.total))+'%">'+
+         (p.tf?'<i style="height:'+pct(p.tf,p.total)+'%;background:var(--c-transfer)"></i>':'')+
+         (p.cash?'<i style="height:'+pct(p.cash,p.total)+'%;background:var(--c-cash)"></i>':'')+
+       '</span></div>';
+  });
+  h+='</div><div class="bxs">'+pts.map(p=>'<div>'+esc(p.label)+'</div>').join('')+'</div>'+
+     '<div class="note" style="margin-top:8px"><span class="pill cash">เงินสด</span> <span class="pill tf">เงินโอน</span></div></div>';
+
+  /* พนักงาน + บริการ */
+  h+='<div class="card"><div class="lb">ยอดแยกตามพนักงาน</div><table><tr><th>พนักงาน</th><th class="num">บิล</th><th class="num">ลูกค้า</th><th class="num">ยอดขาย</th><th class="num">ค่าคอม</th><th class="num">สัดส่วน</th></tr>';
+  h+=S.staff.map(x=>'<tr><td>'+esc(x.name)+'</td><td class="num">'+x.bills+'</td><td class="num">'+x.cus.size+'</td><td class="num">'+money(x.total)+'</td><td class="num" style="color:var(--c-warn)">'+money(x.comm)+'</td><td class="num">'+pct(x.total,S.total)+'%</td></tr>').join('')||'<tr><td colspan="6" class="empty">ยังไม่มีบิล</td></tr>';
+  h+='</table></div>';
+
+  h+='<div class="card"><div class="lb">บริการที่ทำในช่วงนี้</div><table><tr><th>บริการ</th><th class="num">จำนวนครั้ง</th><th class="num">ยอดบริการ</th></tr>';
+  h+=S.svc.map(x=>'<tr><td>'+esc(x.name)+'</td><td class="num">'+x.n+'</td><td class="num">'+(x.total?money(x.total):'—')+'</td></tr>').join('')||'<tr><td colspan="3" class="empty">ยังไม่มีบิล</td></tr>';
+  h+='</table></div>';
+  return h;
+}
+
+function viewCustomers(b){
+  const all=billsIn(b.s,b.e);
+  const firstSeen={};
+  SALES.filter(isLive).forEach(s=>{ if(!s.memberId) return; const t=new Date(s.date);
+    if(!firstSeen[s.memberId]||t<firstSeen[s.memberId]) firstSeen[s.memberId]=t; });
+  const ids=new Set(all.map(s=>s.memberId).filter(Boolean));
+  let fresh=0; ids.forEach(id=>{ if(firstSeen[id]>=b.s) fresh++; });
+  const S=summary(all);
+
+  const staffs=[...new Set(SALES.map(s=>s.staffName).filter(Boolean))];
+  const svcs=[...new Set(all.flatMap(svcNames))].sort();
+  let list=all;
+  if(fCus.staff) list=list.filter(s=>s.staffName===fCus.staff);
+  if(fCus.svc) list=list.filter(s=>svcNames(s).includes(fCus.svc));
+  if(fCus.pay) list=list.filter(s=>(s.payMethod||'cash')===fCus.pay);
+  if(fCus.q.trim()){ const q=fCus.q.trim().toLowerCase(); list=list.filter(s=>String(s.memberName||'').toLowerCase().includes(q)); }
+  list=[...list].sort((a,b2)=>String(b2.date).localeCompare(String(a.date)));
+
+  let h=periodHead(b);
+  h+='<div class="card"><div class="grid3">'+
+     '<div class="tile"><div class="lb">ลูกค้าที่มา</div><div class="v">'+S.customers+' คน</div></div>'+
+     '<div class="tile"><div class="lb">ลูกค้าใหม่</div><div class="v" style="color:var(--c-ok)">'+fresh+' คน</div></div>'+
+     '<div class="tile"><div class="lb">กลับมาซ้ำ</div><div class="v">'+Math.max(0,ids.size-fresh)+' คน</div></div>'+
+     '<div class="tile"><div class="lb">เฉลี่ยต่อคน</div><div class="v">'+money(S.customers?S.total/S.customers:0)+' ฿</div></div>'+
+     '</div></div>';
+
+  h+='<div class="card"><div class="filters">'+
+     '<select id="fstaff"><option value="">พนักงานทุกคน</option>'+staffs.map(x=>'<option '+(fCus.staff===x?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select>'+
+     '<select id="fsvc"><option value="">บริการทั้งหมด</option>'+svcs.map(x=>'<option '+(fCus.svc===x?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select>'+
+     '<select id="fpay"><option value="">จ่ายทุกแบบ</option><option value="cash" '+(fCus.pay==='cash'?'selected':'')+'>เงินสด</option><option value="transfer" '+(fCus.pay==='transfer'?'selected':'')+'>เงินโอน</option></select>'+
+     '<input id="fq" placeholder="ค้นหาชื่อลูกค้า" value="'+esc(fCus.q)+'">'+
+     '</div>';
+  h+='<table><tr><th>เวลา</th><th>ลูกค้า</th><th>บริการ</th><th>สินค้ากลับบ้าน</th><th>พนักงาน</th><th>จ่าย</th><th class="num">ยอด</th></tr>';
+  h+=list.map(s=>'<tr data-cus="'+esc(s.memberId||'')+'">'+
+      '<td class="lb">'+thDate(s.date)+'<br>'+hhmm(s.date)+'</td>'+
+      '<td>'+esc(s.memberName||'ลูกค้าทั่วไป')+'</td>'+
+      '<td>'+svcNames(s).map(esc).join('<br>')+'</td>'+
+      '<td>'+((s.homecareItems||[]).map(i=>esc(i.name)+' ×'+i.qty).join('<br>')||'—')+'</td>'+
+      '<td>'+esc(s.staffName||'—')+'</td>'+
+      '<td><span class="pill '+((s.payMethod==='transfer')?'tf':'cash')+'">'+((s.payMethod==='transfer')?'โอน':'สด')+'</span></td>'+
+      '<td class="num">'+money(paidOf(s))+'</td></tr>').join('')||'<tr><td colspan="7" class="empty">ไม่มีบิลตามเงื่อนไขนี้</td></tr>';
+  h+='</table><div class="note" style="margin-top:8px">แตะแถวเพื่อดูประวัติทั้งหมดของลูกค้าคนนั้น</div></div>';
+  return h;
+}
+
+function viewStock(b){
+  const rows=stockState();
+  const c=latestCount();
+  const usedPeriod=usageBetween(b.s,b.e);
+  const noRecipe=[...new Set(billsIn(b.s,b.e).flatMap(svcNames))].filter(n=>!RECIPES[n]||!(RECIPES[n].lines||[]).length);
+  let h=periodHead(b, c?'<div class="note" style="margin-top:6px">นับสต๊อกล่าสุด '+thLong(c.at)+' · ของที่ใช้หลังจากนั้นถูกหักให้อัตโนมัติจากบิลใน POS</div>'
+                       :'<div class="note" style="margin-top:6px;color:var(--c-warn)">ยังไม่เคยนับสต๊อก กดปุ่ม "นับสต๊อก" เพื่อตั้งยอดตั้งต้นก่อน</div>');
+
+  h+='<div class="card"><div class="btnrow" style="margin-top:0">'+
+     '<button class="btn gold" data-act="count">📋 นับสต๊อก</button>'+
+     '<button class="btn" data-act="receive">+ รับของเข้า</button>'+
+     '<button class="btn" data-act="additem">+ เพิ่มรายการของ</button>'+
+     '</div></div>';
+
+  if(!ITEMS.length){
+    h+='<div class="card"><div class="empty">ยังไม่มีรายการของในคลัง กด "เพิ่มรายการของ" เพื่อเริ่ม เช่น เซรั่ม BB, หัวเข็ม, สำลี, แผ่นมาร์ค</div></div>';
+    return h;
+  }
+
+  const alerts=rows.filter(r=>r.status==='out'||r.status==='low');
+  if(alerts.length){
+    h+='<div class="card"><div class="lb">⚠️ ต้องสั่งเพิ่ม</div><table><tr><th>รายการ</th><th class="num">คงเหลือ</th><th class="num">ใช้เฉลี่ย/วัน</th><th class="num">หมดใน</th></tr>'+
+       alerts.map(r=>'<tr><td>'+esc(r.name)+'</td><td class="num">'+fmtQty(r.left)+' '+esc(r.unit||'')+'</td><td class="num">'+(r.perDay?r.perDay.toFixed(2):'—')+'</td><td class="num">'+(r.daysLeft!=null?r.daysLeft+' วัน':'—')+'</td></tr>').join('')+
+       '</table></div>';
+  }
+
+  h+='<div class="card"><div class="lb">คลังของ · ใช้ไปในช่วงที่เลือก</div><table>'+
+     '<tr><th>รายการ</th><th class="num">ตั้งต้น</th><th class="num">รับเข้า</th><th class="num">ใช้ไป (ช่วงนี้)</th><th class="num">คงเหลือ</th><th>สถานะ</th></tr>';
+  h+=rows.map(r=>{
+    const st=r.status==='out'?'<span class="pill danger">หมด</span>'
+            :r.status==='low'?'<span class="pill warn">ใกล้หมด</span>'
+            :r.status==='ok'?'<span class="pill ok">พอ</span>':'<span class="pill">ยังไม่นับ</span>';
+    const uses=(r.left!=null&&(+r.usesPerUnit||1)>1)?' <span class="lb">≈ '+Math.floor(r.left*(+r.usesPerUnit||1))+' ครั้ง</span>':'';
+    return '<tr><td>'+esc(r.name)+'<div class="lb">'+esc(r.unit||'')+((+r.usesPerUnit||1)>1?' · 1 '+esc(r.unit||'หน่วย')+' = '+r.usesPerUnit+' ครั้ง':'')+(r.reorder?' · เตือนที่ '+r.reorder:'')+'</div></td>'+
+      '<td class="num">'+(r.base==null?'—':fmtQty(r.base))+'</td>'+
+      '<td class="num">'+(r.inQty?'+'+fmtQty(r.inQty):'—')+'</td>'+
+      '<td class="num">'+fmtQty(usedPeriod[r.id]||0)+'</td>'+
+      '<td class="num" style="font-weight:700">'+(r.left==null?'—':fmtQty(r.left))+uses+'</td>'+
+      '<td>'+st+'</td></tr>';
+  }).join('');
+  h+='</table></div>';
+
+  if(noRecipe.length){
+    h+='<div class="card"><div class="lb">ยังไม่ได้ตั้งสูตร</div><div class="note">บริการเหล่านี้มีในบิลช่วงนี้ แต่ยังไม่ได้บอกว่าใช้ของอะไร ระบบเลยยังไม่หักสต๊อกให้: <b>'+noRecipe.map(esc).join(' · ')+'</b><br>ไปตั้งได้ที่แท็บ "สูตรตัดสต๊อก"</div></div>';
+  }
+
+  const mv=[...MOVES].sort((a,b2)=>String(b2.at).localeCompare(String(a.at))).slice(0,15);
+  if(mv.length){
+    h+='<div class="card"><div class="lb">รับของเข้าล่าสุด</div><table><tr><th>วันที่</th><th>รายการ</th><th class="num">จำนวน</th><th>หมายเหตุ</th></tr>'+
+      mv.map(m=>{const it=ITEMS.find(i=>i.id===m.item);
+        return '<tr><td class="lb">'+thDate(m.at)+'</td><td>'+esc(it?it.name:'—')+'</td><td class="num">+'+money(m.qty)+'</td><td class="lb">'+esc(m.note||'')+'</td></tr>';}).join('')+
+      '</table></div>';
+  }
+  return h;
+}
+
+function viewRecipe(){
+  const used=[...new Set(SALES.filter(isLive).flatMap(svcNames))];
+  const counts={};
+  SALES.filter(isLive).forEach(s=>svcNames(s).forEach(n=>counts[n]=(counts[n]||0)+1));
+  const names=[...new Set([...used, ...Object.keys(RECIPES)])].sort((a,b)=>(counts[b]||0)-(counts[a]||0));
+  let h='<div class="card"><div class="lb">สูตรตัดสต๊อก</div><div class="note">บอกว่าบริการ 1 ครั้ง ใช้ของอะไร <b>กี่ครั้ง</b> ระบบจะแปลงเป็นจำนวนหน่วยให้เอง (เช่น เซรั่ม 1 ขวดใช้ได้ 10 ครั้ง ใส่ 1 = หัก 0.1 ขวด) และหักให้ทุกครั้งที่พนักงานปิดบิลใน POS<br>สินค้าที่ขายกลับบ้านตัดอัตโนมัติอยู่แล้ว ไม่ต้องตั้งสูตร · ของแถมตั้งสูตรได้เหมือนบริการปกติ</div>'+
+    '<div class="btnrow"><button class="btn" data-act="additem">+ เพิ่มรายการของ</button></div></div>';
+  if(!ITEMS.length){
+    h+='<div class="card"><div class="empty">เพิ่มรายการของในคลังก่อน แล้วค่อยผูกเข้ากับบริการ</div></div>';
+    return h;
+  }
+  names.forEach(n=>{
+    const r=RECIPES[n]||{lines:[]};
+    h+='<div class="recipe" data-svc="'+esc(n)+'"><h4>'+esc(n)+'</h4><div class="lb">ทำไปแล้ว '+(counts[n]||0)+' ครั้ง</div>';
+    (r.lines||[]).forEach((l,idx)=>{
+      h+='<div class="rline"><select data-line="'+idx+'">'+ITEMS.map(i=>'<option value="'+i.id+'" '+(l.item===i.id?'selected':'')+'>'+esc(i.name)+'</option>').join('')+'</select>'+
+         '<input type="number" step="0.01" min="0" data-qty="'+idx+'" value="'+(l.qty??'')+'" placeholder="กี่ครั้ง">'+
+         '<span class="lb">ครั้ง/บริการ'+(()=>{const it=ITEMS.find(i=>i.id===l.item); const u=it&&+it.usesPerUnit>1?+it.usesPerUnit:0;
+            return u&&l.qty?' · = '+fmtQty((+l.qty)/u)+' '+esc(it.unit||''):(it?' · '+esc(it.unit||''):'');})()+'</span>'+
+         '<button class="x" data-del="'+idx+'" aria-label="ลบ">✕</button></div>';
+    });
+    h+='<div class="btnrow"><button class="btn" data-add="1">+ เพิ่มของที่ใช้</button><button class="btn gold" data-save="1">บันทึกสูตรนี้</button></div></div>';
+  });
+  return h;
+}
+
+/* ========== sheets ========== */
+function closeSheet(){ $('#sheets').innerHTML=''; }
+function sheet(html){ $('#sheets').innerHTML='<div class="sheet" data-close><div class="sheetbox">'+html+'</div></div>'; }
+function sheetAddItem(){
+  sheet('<h2>เพิ่มรายการของ</h2><p class="note">เช่น เซรั่ม BB Glow (ขวด), หัวเข็ม (หัว), สำลี (แผ่น)</p>'+
+    '<div class="frow"><label>ชื่อรายการ</label><input id="i_name" placeholder="เซรั่ม BB Glow"></div>'+
+    '<div class="frow"><label>หน่วยนับ</label><input id="i_unit" placeholder="ขวด / หัว / แผ่น / ชิ้น"></div>'+
+    '<div class="frow"><label>1 หน่วย ใช้ได้กี่ครั้ง (เช่น เซรั่ม 1 ขวด = 10 ครั้ง · ของที่ใช้แล้วทิ้งใส่ 1)</label><input id="i_uses" type="number" step="0.01" min="0.01" value="1"></div>'+
+    '<div class="frow"><label>เตือนเมื่อเหลือต่ำกว่า (ใส่ 0 ถ้าไม่ต้องเตือน)</label><input id="i_reorder" type="number" step="0.01" min="0" value="0"></div>'+
+    '<div class="btnrow"><button class="btn" data-close-btn>ยกเลิก</button><button class="btn gold" data-act="saveitem">บันทึก</button></div>');
+}
+function sheetReceive(){
+  sheet('<h2>รับของเข้า</h2><p class="note">บันทึกทุกครั้งที่ซื้อของเข้าร้าน ระบบจะบวกเพิ่มให้</p>'+
+    '<div class="frow"><label>รายการ</label><select id="r_item">'+ITEMS.map(i=>'<option value="'+i.id+'">'+esc(i.name)+'</option>').join('')+'</select></div>'+
+    '<div class="frow"><label>จำนวนที่รับเข้า</label><input id="r_qty" type="number" step="0.01" min="0" placeholder="0"></div>'+
+    '<div class="frow"><label>หมายเหตุ (ไม่ใส่ก็ได้)</label><input id="r_note" placeholder="ซื้อจากตัวแทน"></div>'+
+    '<div class="btnrow"><button class="btn" data-close-btn>ยกเลิก</button><button class="btn gold" data-act="savereceive">บันทึก</button></div>');
+}
+function sheetCount(){
+  const st=stockState();
+  sheet('<h2>นับสต๊อก</h2><p class="note">กรอกจำนวนจริงที่นับได้ ระบบจะใช้เป็นยอดตั้งต้น แล้วหักตามบิลที่เกิดหลังวันที่นับเท่านั้น</p>'+
+    '<div class="frow"><label>วันที่นับ</label><input type="date" id="c_date" value="'+ymd(new Date())+'"></div>'+
+    st.map(r=>'<div class="frow"><label>'+esc(r.name)+' ('+esc(r.unit||'')+')'+(r.left!=null?' · ระบบคิดว่าเหลือ '+fmtQty(r.left):'')+'</label>'+
+      '<input type="number" step="0.01" min="0" data-count="'+r.id+'" value="'+(r.left!=null?Math.round(r.left*100)/100:'')+'"></div>').join('')+
+    '<div class="btnrow"><button class="btn" data-close-btn>ยกเลิก</button><button class="btn gold" data-act="savecount">บันทึกยอดนับ</button></div>');
+}
+function sheetCustomer(id){
+  const list=SALES.filter(s=>isLive(s)&&s.memberId===id).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  if(!list.length) return;
+  const total=list.reduce((a,s)=>a+paidOf(s),0);
+  sheet('<h2>'+esc(list[0].memberName||'ลูกค้า')+'</h2>'+
+    '<p class="note">มาแล้ว '+list.length+' ครั้ง · ใช้จ่ายรวม '+money(total)+' ฿ · เฉลี่ย '+money(total/list.length)+' ฿/ครั้ง</p>'+
+    '<table><tr><th>วันที่</th><th>บริการ</th><th>พนักงาน</th><th class="num">ยอด</th></tr>'+
+    list.map(s=>'<tr><td class="lb">'+thDate(s.date)+'</td><td>'+svcNames(s).map(esc).join('<br>')+'</td><td>'+esc(s.staffName||'—')+'</td><td class="num">'+money(paidOf(s))+'</td></tr>').join('')+
+    '</table><div class="btnrow"><button class="btn" data-close-btn>ปิด</button></div>');
+}
+
+/* ========== events ========== */
+document.addEventListener('click', async e=>{
+  const t=e.target;
+  if(t.hasAttribute('data-close') && t===e.target){ closeSheet(); return; }
+  const btn=t.closest('button');
+  const row=t.closest('tr[data-cus]');
+  if(row && row.dataset.cus && !btn){ sheetCustomer(row.dataset.cus); return; }
+  if(!btn) return;
+  if(btn.hasAttribute('data-close-btn')){ closeSheet(); return; }
+  if(btn.dataset.tab){ tab=btn.dataset.tab; $$('#tabs button').forEach(x=>x.classList.toggle('on',x===btn)); render(); window.scrollTo(0,0); return; }
+  if(btn.dataset.r){
+    range=btn.dataset.r;
+    $$('#ranges button').forEach(x=>x.classList.toggle('on',x===btn));
+    $('#dayin').classList.toggle('hide', range!=='pickday');
+    $('#monthin').classList.toggle('hide', range!=='pickmonth');
+    $('#yearin').classList.toggle('hide', range!=='pickyear');
+    if(range==='pickmonth') fillMonths();
+    if(range==='pickyear') fillYears();
+    render(); return;
+  }
+  const act=btn.dataset.act;
+  if(act==='additem'){ sheetAddItem(); return; }
+  if(act==='receive'){ if(!ITEMS.length){toast('เพิ่มรายการของก่อน');return;} sheetReceive(); return; }
+  if(act==='count'){ if(!ITEMS.length){toast('เพิ่มรายการของก่อน');return;} sheetCount(); return; }
+  if(act==='saveitem'){
+    const name=$('#i_name').value.trim(); if(name.length<2){toast('กรอกชื่อรายการ');return;}
+    const it={id:uid('I'), name, unit:$('#i_unit').value.trim()||'ชิ้น', usesPerUnit:+$('#i_uses').value||1, reorder:+$('#i_reorder').value||0};
+    await setDoc(doc(db,'stock_items',it.id), it); closeSheet(); toast('เพิ่ม '+name+' แล้ว'); return;
+  }
+  if(act==='savereceive'){
+    const item=$('#r_item').value, qty=+$('#r_qty').value;
+    if(!item||!(qty>0)){toast('กรอกจำนวนให้ถูกต้อง');return;}
+    const m={id:uid('M'), item, qty, at:new Date().toISOString(), note:$('#r_note').value.trim(), type:'in'};
+    await setDoc(doc(db,'stock_moves',m.id), m); closeSheet(); toast('รับของเข้าแล้ว'); return;
+  }
+  if(act==='savecount'){
+    const lines={};
+    $$('[data-count]').forEach(i=>{ const v=+i.value; if(i.value!=='') lines[i.dataset.count]=v; });
+    const dv=$('#c_date').value, now=new Date();
+    const at=dv ? new Date(parseYmd(dv).setHours(now.getHours(),now.getMinutes(),0,0)).toISOString() : now.toISOString();
+    const c={id:uid('C'), at, lines};
+    await setDoc(doc(db,'stock_counts',c.id), c); closeSheet(); toast('บันทึกยอดนับแล้ว'); return;
+  }
+  /* สูตร */
+  const box=btn.closest('.recipe');
+  if(box){
+    const svc=box.dataset.svc;
+    const cur=RECIPES[svc]||{lines:[]};
+    if(btn.dataset.add){ cur.lines=[...(cur.lines||[]), {item:ITEMS[0].id, qty:1}]; RECIPES[svc]=cur; render(); return; }
+    if(btn.dataset.del!=null){ cur.lines.splice(+btn.dataset.del,1); RECIPES[svc]=cur; render(); return; }
+    if(btn.dataset.save){
+      const lines=[];
+      box.querySelectorAll('.rline').forEach(l=>{
+        const item=l.querySelector('select').value, qty=+l.querySelector('input').value;
+        if(item&&qty>0) lines.push({item, qty});
+      });
+      await setDoc(doc(db,'stock_recipes',encodeURIComponent(svc)), {service:svc, lines});
+      toast('บันทึกสูตร '+svc+' แล้ว'); return;
+    }
+  }
+});
+document.addEventListener('change', e=>{
+  const id=e.target.id;
+  if(id==='dayin'){ pickDay=e.target.value||pickDay; render(); }
+  if(id==='monthin'){ pickMonth=e.target.value; render(); }
+  if(id==='yearin'){ pickYear=e.target.value; render(); }
+  if(id==='fstaff'){ fCus.staff=e.target.value; render(); }
+  if(id==='fsvc'){ fCus.svc=e.target.value; render(); }
+  if(id==='fpay'){ fCus.pay=e.target.value; render(); }
+});
+document.addEventListener('input', e=>{
+  if(e.target.id==='fq'){ fCus.q=e.target.value; const pos=e.target.selectionStart; render();
+    const el=$('#fq'); if(el){ el.focus(); el.setSelectionRange(pos,pos); } }
+});
+$('#logout').onclick=()=>{ try{ sessionStorage.removeItem('jet_ok'); }catch(e){} location.reload(); };
+
+function fillMonths(){
+  const sel=$('#monthin'); const now=new Date();
+  const dates=SALES.map(s=>new Date(s.date)).filter(d=>!isNaN(d));
+  const oldest=dates.length?new Date(Math.min(...dates)):now;
+  let d=new Date(now.getFullYear(),now.getMonth(),1), out=[];
+  const stop=new Date(oldest.getFullYear(),oldest.getMonth(),1);
+  while(d>=stop&&out.length<60){ out.push('<option value="'+ym(d)+'">'+thMonth(d)+'</option>'); d=new Date(d.getFullYear(),d.getMonth()-1,1); }
+  sel.innerHTML=out.join(''); sel.value=pickMonth;
+}
+function fillYears(){
+  const sel=$('#yearin'); const now=new Date();
+  const dates=SALES.map(s=>new Date(s.date)).filter(d=>!isNaN(d));
+  const oldest=dates.length?new Date(Math.min(...dates)):now;
+  let out=[];
+  for(let y=now.getFullYear(); y>=oldest.getFullYear(); y--) out.push('<option value="'+y+'">พ.ศ. '+(y+543)+'</option>');
+  sel.innerHTML=out.join(''); sel.value=pickYear;
+}
+
+/* ========== ด่านรหัสผ่าน ========== */
+async function sha(s){
+  if(window.crypto&&crypto.subtle){
+    const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode('jet-bbglow:'+s));
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  let h=0; const str='jet-bbglow:'+s;
+  for(let i=0;i<str.length;i++){ h=(h*31+str.charCodeAt(i))|0; }
+  return 'x'+(h>>>0).toString(16);
+}
+let gateMode='login';
+async function initGate(){
+  let snap=null;
+  try{ snap=await getDoc(doc(db,'config','jet')); }catch(e){}
+  const data=snap&&snap.exists()?snap.data():null;
+  if(!data||!data.pwHash){
+    gateMode='set';
+    $('#gatelabel').textContent='ตั้งรหัสผ่านใหม่';
+    $('#gate2row').classList.remove('hide');
+    $('#gatenote').textContent='เปิดครั้งแรก ตั้งรหัสผ่านของผู้จัดการก่อนค่ะ';
+    $('#gatebtn').textContent='ตั้งรหัสผ่าน';
+  }
+  try{ if(sessionStorage.getItem('jet_ok')==='1'&&data&&data.pwHash) openApp(); }catch(e){}
+}
+$('#gateform').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const pw=$('#gatepw').value, err=$('#gateerr');
+  if(gateMode==='set'){
+    if(pw.length<4){ err.textContent='รหัสผ่านอย่างน้อย 4 ตัว'; return; }
+    if(pw!==$('#gatepw2').value){ err.textContent='รหัสสองช่องไม่ตรงกัน'; return; }
+    await setDoc(doc(db,'config','jet'), {pwHash:await sha(pw), at:new Date().toISOString()}, {merge:true});
+    try{ sessionStorage.setItem('jet_ok','1'); }catch(e){}
+    openApp(); return;
+  }
+  const snap=await getDoc(doc(db,'config','jet'));
+  const h=snap.exists()?snap.data().pwHash:'';
+  if(h && await sha(pw)===h){ try{ sessionStorage.setItem('jet_ok','1'); }catch(e){} openApp(); }
+  else { err.textContent='รหัสผ่านไม่ถูกต้อง'; $('#gatepw').value=''; }
+});
+
+/* ========== เริ่มระบบ ========== */
+function openApp(){
+  $('#gate').classList.add('hide');
+  $('#app').classList.remove('hide');
+  $('#dayin').value=pickDay;
+  listen();
+}
+let listening=false;
+function listen(){
+  if(listening) return; listening=true;
+  onSnapshot(collection(db,'sales'), s=>{ SALES=s.docs.map(d=>d.data()); ready=true; $('#synced').textContent='ข้อมูลล่าสุด '+hhmm(new Date())+' น.'; render(); });
+  onSnapshot(collection(db,'stock_items'), s=>{ ITEMS=s.docs.map(d=>d.data()).sort((a,b)=>a.name.localeCompare(b.name,'th')); render(); });
+  onSnapshot(collection(db,'stock_recipes'), s=>{ RECIPES={}; s.docs.forEach(d=>{const v=d.data(); if(v&&v.service) RECIPES[v.service]=v;}); render(); });
+  onSnapshot(collection(db,'stock_counts'), s=>{ COUNTS=s.docs.map(d=>d.data()); render(); });
+  onSnapshot(collection(db,'stock_moves'), s=>{ MOVES=s.docs.map(d=>d.data()); render(); });
+  onSnapshot(doc(db,'config','jetcfg'), s=>{ CFG=s.exists()?s.data():{}; render(); });
+}
+initGate();
+</script>
+</body>
+</html>
