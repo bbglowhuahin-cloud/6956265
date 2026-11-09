@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HIS · รายงานผู้ร่วมลงทุน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF6EF; --surface-1:#FFFFFF; --surface-2:#F5EDE0;
+  --border:rgba(154,122,42,.22);
+  --text-primary:#2A1F14; --text-secondary:#5C4A34; --text-muted:#8A7659;
+  --gold:#9A7A2A; --c-cap:#2a78d6; --c-profit:#1b7a58; --c-sale:#a8791c;
+  --shadow:0 1px 3px rgba(80,50,10,.07), 0 6px 18px rgba(80,50,10,.06);
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#16120E; --surface-1:#221B14; --surface-2:#2B2219;
+    --border:rgba(201,169,110,.2);
+    --text-primary:#F6EEE0; --text-secondary:#D3C3A8; --text-muted:#9E8B70;
+    --gold:#E8C87A; --c-cap:#6ba8ee; --c-profit:#3fc194; --c-sale:#c9962c;
+    --shadow:0 1px 3px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.3);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text-primary);font-family:'Sarabun',system-ui,sans-serif}
+body{padding-bottom:40px;-webkit-font-smoothing:antialiased}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+.hide{display:none!important}
+.wrap{max-width:880px;margin:0 auto;padding:0 16px}
+header{background:var(--surface-1);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40}
+.hin{max-width:880px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:12px}
+h1{margin:0;font-size:1.1rem;font-weight:700}
+.sub{font-size:.76rem;color:var(--text-muted)}
+.iconbtn{margin-left:auto;background:none;border:1px solid var(--border);border-radius:12px;padding:7px 12px;color:var(--text-secondary);font-size:.82rem}
+.ranges{display:flex;gap:7px;overflow-x:auto;max-width:880px;margin:0 auto;padding:12px 16px 4px;scrollbar-width:none}
+.ranges button{white-space:nowrap;padding:8px 14px;border-radius:20px;background:var(--surface-1);border:1px solid var(--border);color:var(--text-secondary);font-size:.85rem}
+.ranges button.on{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:600}
+.ranges input,.ranges select{padding:7px 12px;border-radius:20px;background:var(--surface-1);border:1px solid var(--border);outline:none;font-size:.84rem}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px;margin-top:14px}
+.lb{font-size:.76rem;color:var(--text-muted)}
+.big{font-size:2.4rem;font-weight:700;line-height:1.1}
+.big small{font-size:.9rem;font-weight:500;color:var(--text-muted);margin-left:6px}
+.v{font-size:1.25rem;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
+.tile{background:var(--surface-2);border-radius:12px;padding:13px 15px}
+table{width:100%;border-collapse:collapse;font-size:.87rem}
+th{text-align:left;font-weight:600;color:var(--text-muted);font-size:.74rem;padding:8px 6px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 6px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.bars{display:flex;align-items:flex-end;gap:6px;height:130px;margin-top:12px}
+.bcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;min-width:0}
+.bar{width:min(28px,100%);background:var(--c-sale);border-radius:6px 6px 0 0}
+.bval{font-size:.62rem;color:var(--text-muted)}
+.bxs{display:flex;gap:6px;margin-top:6px;font-size:.66rem;color:var(--text-muted);text-align:center}
+.bxs div{flex:1;min-width:0;overflow:hidden}
+.empty{text-align:center;color:var(--text-muted);padding:22px 0;font-size:.88rem}
+.note{font-size:.78rem;color:var(--text-muted);line-height:1.65}
+.frow{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;text-align:left}
+.frow label{font-size:.78rem;color:var(--text-muted)}
+.frow input{padding:10px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border);outline:none}
+.btn{border:1px solid var(--border);background:var(--surface-1);border-radius:12px;padding:10px 16px;font-size:.88rem;color:var(--text-secondary)}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:600}
+.gate{min-height:100svh;display:flex;align-items:center;justify-content:center;padding:20px}
+.gatebox{background:var(--surface-1);border:1px solid var(--border);border-radius:20px;padding:26px 22px;max-width:360px;width:100%;box-shadow:var(--shadow);text-align:center}
+.gatebox h2{margin:0 0 6px;font-size:1.1rem}
+.badge{display:inline-block;font-size:.7rem;padding:3px 10px;border-radius:12px;background:var(--surface-2);color:var(--text-secondary)}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header>
+    <div class="hin">
+      <div>
+        <h1>รายงานผลิตภัณฑ์ HIS</h1>
+        <div class="sub">BB Glow หัวหิน · <span id="synced">กำลังโหลด…</span></div>
+      </div>
+    </div>
+    <div class="ranges" id="ranges">
+      <button data-r="today" class="on">วันนี้</button>
+      <button data-r="yday">เมื่อวาน</button>
+      <button data-r="week">สัปดาห์นี้</button>
+      <button data-r="month">เดือนนี้</button>
+      <button data-r="year">ปีนี้</button>
+      <button data-r="all">ทั้งหมด</button>
+      <button data-r="pickday">📆 เลือกวัน</button>
+      <button data-r="pickmonth">📅 เลือกเดือน</button>
+      <input type="date" id="dayin" class="hide">
+      <select id="monthin" class="hide"></select>
+    </div>
+  </header>
+  <div class="wrap" id="view"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, onSnapshot }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyB8HM1grB7OsiBvdLo5xRH5SqLnQoLR25U",
+  authDomain:"bbglowhuahin-3bb7d.firebaseapp.com",
+  projectId:"bbglowhuahin-3bb7d",
+  storageBucket:"bbglowhuahin-3bb7d.firebasestorage.app",
+  messagingSenderId:"714462283652",
+  appId:"1:714462283652:web:088c6ddde11f46fc08ffd1"
+});
+const db = getFirestore(app);
+
+/* ===== สินค้าของผู้ร่วมลงทุน + ต้นทุนต่อชิ้น ===== */
+const DEFAULT_PRODUCTS = [
+  {name:'เจลล้างหน้า HIS',   unit:'ขวด',  cost:50},
+  {name:'มอยส์เจอร์ HIS',    unit:'ขวด',  cost:76},
+  {name:'แผ่นมาร์คหน้า HIS', unit:'แผ่น', cost:0}
+];
+const SHARE = 1/3;                 // สัดส่วนที่ผู้ร่วมลงทุนได้รับจากส่วนต่าง
+let PRODUCTS = DEFAULT_PRODUCTS.slice();
+
+let SALES=[], range='today', pickDay='', pickMonth='', ready=false;
+
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>Math.round(n||0).toLocaleString('en-US');
+function ymd(d){const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');}
+const ym=d=>ymd(d).slice(0,7);
+const parseYmd=s=>{const[y,m,d]=String(s).split('-').map(Number);return new Date(y,(m||1)-1,d||1);};
+const sod=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x;};
+const eod=d=>{const x=new Date(d);x.setHours(23,59,59,999);return x;};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const thDate=d=>new Date(d).toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});
+const thLong=d=>new Date(d).toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const thMonth=d=>new Date(d).toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+const hhmm=d=>new Date(d).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+pickDay=ymd(new Date()); pickMonth=ym(new Date());
+
+function bounds(){
+  const now=new Date(), t0=sod(now), T=eod(now);
+  switch(range){
+    case 'today': return {s:t0,e:T,label:'วันนี้ · '+thLong(t0),unit:'day'};
+    case 'yday':  {const d=addDays(t0,-1);return {s:d,e:eod(d),label:'เมื่อวาน · '+thLong(d),unit:'day'};}
+    case 'week':  {const w=sod(addDays(t0,-((t0.getDay()+6)%7)));return {s:w,e:T,label:'สัปดาห์นี้ · ตั้งแต่จันทร์ '+thDate(w),unit:'day'};}
+    case 'month': {const s=new Date(t0.getFullYear(),t0.getMonth(),1);return {s,e:T,label:'เดือนนี้ · '+thMonth(s),unit:'day'};}
+    case 'year':  {const s=new Date(t0.getFullYear(),0,1);return {s,e:T,label:'ปีนี้ · พ.ศ. '+(t0.getFullYear()+543),unit:'month'};}
+    case 'all':   return {s:new Date(2000,0,1),e:T,label:'ตั้งแต่เริ่มขาย',unit:'month'};
+    case 'pickday':{const d=parseYmd(pickDay);return {s:sod(d),e:eod(d),label:thLong(d),unit:'day'};}
+    case 'pickmonth':{const s=parseYmd(pickMonth+'-01');let e=eod(new Date(s.getFullYear(),s.getMonth()+1,0));if(e>T)e=T;return {s,e,label:thMonth(s),unit:'day'};}
+  }
+  return {s:t0,e:T,label:'วันนี้',unit:'day'};
+}
+
+/* ===== รวมยอดขายผลิตภัณฑ์ HIS ===== */
+function tally(s,e){
+  const rows=PRODUCTS.map(p=>({...p, qty:0, sale:0}));
+  let bills=0;
+  SALES.forEach(b=>{
+    if(b.voided) return;
+    const d=new Date(b.date); if(!(d>=s&&d<=e)) return;
+    let touched=false;
+    (b.homecareItems||[]).forEach(h=>{
+      const r=rows.find(x=>x.name===h.name); if(!r) return;
+      const qty=+h.qty||0;
+      const amount=(h.total!=null?+h.total:(+h.unitPrice||0)*qty);
+      r.qty+=qty; r.sale+=amount; touched=true;
+    });
+    if(touched) bills++;
+  });
+  rows.forEach(r=>{
+    r.capital=r.cost*r.qty;                       // เงินต้นที่ได้คืน
+    r.margin=Math.max(0, r.sale-r.capital);       // ส่วนต่าง
+    r.profit=r.margin*SHARE;                      // ส่วนของผู้ร่วมลงทุน
+    r.priced=r.cost>0;
+  });
+  const sum=k=>rows.reduce((a,r)=>a+(r[k]||0),0);
+  return {rows, bills, qty:sum('qty'), sale:sum('sale'), capital:sum('capital'), profit:sum('profit')};
+}
+
+function render(){
+  if(!ready) return;
+  const b=bounds(), T=tally(b.s,b.e);
+  const noPrice=T.rows.filter(r=>!r.priced&&r.qty>0);
+  let h='';
+
+  h+='<div class="card"><div class="lb">ยอดขายผลิตภัณฑ์ HIS · '+esc(b.label)+'</div>'+
+     '<div class="big">'+money(T.sale)+'<small>บาท</small></div>'+
+     '<div class="lb" style="margin-top:4px">ขายได้ '+money(T.qty)+' ชิ้น · จาก '+T.bills+' บิล</div>'+
+     '<div class="grid">'+
+       '<div class="tile"><div class="lb">เงินต้นที่ได้คืน</div><div class="v" style="color:var(--c-cap)">'+money(T.capital)+' ฿</div><div class="lb">เก็บไว้ต่อทุนรอบถัดไป</div></div>'+
+       '<div class="tile"><div class="lb">กำไรส่วนของครูนก</div><div class="v" style="color:var(--c-profit)">'+money(T.profit)+' ฿</div><div class="lb">ปันผลคืนทุกเดือน</div></div>'+
+     '</div></div>';
+
+  h+='<div class="card"><div class="lb">แยกตามผลิตภัณฑ์</div><table>'+
+     '<tr><th>ผลิตภัณฑ์</th><th class="num">ขายได้</th><th class="num">ยอดขาย</th><th class="num">เงินต้นคืน</th><th class="num">กำไรของครูนก</th></tr>'+
+     T.rows.map(r=>'<tr><td>'+esc(r.name)+'<div class="lb">ทุน '+(r.cost?money(r.cost)+' ฿/'+esc(r.unit):'ยังไม่ได้ตั้งทุน')+'</div></td>'+
+       '<td class="num">'+money(r.qty)+' '+esc(r.unit)+'</td>'+
+       '<td class="num">'+money(r.sale)+'</td>'+
+       '<td class="num" style="color:var(--c-cap)">'+(r.priced?money(r.capital):'—')+'</td>'+
+       '<td class="num" style="color:var(--c-profit)">'+(r.priced?money(r.profit):'—')+'</td></tr>').join('')+
+     '</table>'+
+     (noPrice.length?'<div class="note" style="margin-top:10px">* '+noPrice.map(r=>esc(r.name)).join(' · ')+' ยังไม่ได้ตั้งต้นทุน จึงยังไม่คำนวณเงินต้นและกำไรให้</div>':'')+
+     '</div>';
+
+  /* กราฟ */
+  const pts=[];
+  if(b.unit==='month'){
+    const y=(range==='all'? new Date(firstSaleDate()).getFullYear() : b.s.getFullYear());
+    const yEnd=new Date().getFullYear();
+    for(let yy=y; yy<=yEnd; yy++){
+      for(let m=0;m<12;m++){
+        const s=new Date(yy,m,1), e=eod(new Date(yy,m+1,0));
+        if(s>b.e) break;
+        if(e<b.s) continue;
+        const t=tally(s,e);
+        pts.push({label:s.toLocaleDateString('th-TH',{month:'short'}), v:t.sale});
+      }
+    }
+  } else {
+    const days=Math.min(62, Math.round((sod(b.e)-sod(b.s))/864e5)+1);
+    for(let i=0;i<days;i++){
+      const d=addDays(b.s,i); if(d>b.e) break;
+      const t=tally(sod(d),eod(d));
+      pts.push({label:(days>14?String(d.getDate()):thDate(d)), v:t.sale});
+    }
+  }
+  if(pts.length>1){
+    const mx=Math.max(1,...pts.map(p=>p.v));
+    h+='<div class="card"><div class="lb">ยอดขายรายวัน</div><div class="bars">'+
+      pts.map(p=>'<div class="bcol" title="'+esc(p.label)+' · '+money(p.v)+' ฿">'+
+        (p.v?'<span class="bval">'+(p.v>=1000?Math.round(p.v/1000)+'k':p.v)+'</span>':'')+
+        '<span class="bar" style="height:'+Math.max(2,Math.round(p.v/mx*100))+'%"></span></div>').join('')+
+      '</div><div class="bxs">'+pts.map(p=>'<div>'+esc(p.label)+'</div>').join('')+'</div></div>';
+  }
+
+  /* สรุปรายเดือนของปีนี้ */
+  const now=new Date(), yr=now.getFullYear();
+  const months=[];
+  for(let m=0;m<=now.getMonth();m++){
+    const s=new Date(yr,m,1), e=eod(new Date(yr,m+1,0));
+    const t=tally(s,e);
+    if(t.qty>0||m===now.getMonth()) months.push({s, t});
+  }
+  if(months.length){
+    h+='<div class="card"><div class="lb">สรุปรายเดือน · ปี พ.ศ. '+(yr+543)+'</div><table>'+
+      '<tr><th>เดือน</th><th class="num">ขายได้</th><th class="num">ยอดขาย</th><th class="num">เงินต้นคืน</th><th class="num">ปันผลของครูนก</th></tr>'+
+      months.reverse().map(x=>'<tr><td>'+thMonth(x.s)+(ym(x.s)===ym(now)?' <span class="badge">เดือนปัจจุบัน</span>':'')+'</td>'+
+        '<td class="num">'+money(x.t.qty)+'</td><td class="num">'+money(x.t.sale)+'</td>'+
+        '<td class="num" style="color:var(--c-cap)">'+money(x.t.capital)+'</td>'+
+        '<td class="num" style="color:var(--c-profit)">'+money(x.t.profit)+'</td></tr>').join('')+
+      '</table></div>';
+  }
+
+  h+='<div class="card"><div class="note">'+
+     '• ตัวเลขอัปเดตสดทุกครั้งที่หน้าร้านปิดบิล ไม่ต้องรีเฟรช<br>'+
+     '• <b>เงินต้น</b> ทางร้านเก็บไว้ต่อทุนสั่งผลิตรอบถัดไป<br>'+
+     '• <b>กำไร</b> ปันผลคืนให้ทุกเดือน<br>'+
+     '• บิลที่ถูกยกเลิกจะไม่ถูกนับในรายงานนี้'+
+     '</div></div>';
+
+  if(!T.qty && range!=='all') h+='<div class="card"><div class="empty">ยังไม่มีการขายในช่วงนี้</div></div>';
+  $('#view').innerHTML=h;
+}
+function firstSaleDate(){
+  let min=null;
+  SALES.forEach(b=>{ if(b.voided) return;
+    if((b.homecareItems||[]).some(h=>PRODUCTS.some(p=>p.name===h.name))){
+      const d=new Date(b.date); if(!min||d<min) min=d; } });
+  return min||new Date();
+}
+
+/* ===== events ===== */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('#ranges button'); if(!b) return;
+  range=b.dataset.r;
+  $$('#ranges button').forEach(x=>x.classList.toggle('on',x===b));
+  $('#dayin').classList.toggle('hide', range!=='pickday');
+  $('#monthin').classList.toggle('hide', range!=='pickmonth');
+  if(range==='pickmonth') fillMonths();
+  render();
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='dayin'){ pickDay=e.target.value||pickDay; render(); }
+  if(e.target.id==='monthin'){ pickMonth=e.target.value; render(); }
+});
+function fillMonths(){
+  const sel=$('#monthin'), now=new Date(), first=firstSaleDate();
+  let d=new Date(now.getFullYear(),now.getMonth(),1), out=[];
+  const stop=new Date(first.getFullYear(),first.getMonth(),1);
+  while(d>=stop&&out.length<48){ out.push('<option value="'+ym(d)+'">'+thMonth(d)+'</option>'); d=new Date(d.getFullYear(),d.getMonth()-1,1); }
+  sel.innerHTML=out.join(''); sel.value=pickMonth;
+}
+
+function openApp(){
+  $('#dayin').value=pickDay;
+  onSnapshot(collection(db,'sales'), s=>{
+    SALES=s.docs.map(d=>d.data()); ready=true;
+    $('#synced').textContent='อัปเดตล่าสุด '+hhmm(new Date())+' น.';
+    render();
+  });
+  onSnapshot(doc(db,'config','nok'), s=>{
+    const v=s.exists()?s.data():null;
+    if(v&&Array.isArray(v.products)&&v.products.length){ PRODUCTS=v.products; render(); }
+  });
+}
+openApp();
+</script>
+</body>
+</html>
